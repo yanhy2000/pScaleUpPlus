@@ -199,7 +199,7 @@ class pScaleUp_Plugin implements Typecho_Plugin_Interface
         });
 
         overlay.addEventListener('click', function(event) {
-            if (event.target !== prevButton && event.target !== nextButton) {//event.target !== overlayImg &&
+            if (event.target !== prevButton && event.target !== nextButton) {
                 closeOverlay();
             }
         });
@@ -225,13 +225,17 @@ class pScaleUp_Plugin implements Typecho_Plugin_Interface
             }
         });
 
-        overlayImg.addEventListener('wheel', function(event) {
-            event.preventDefault();
-            if (event.deltaY < 0) {
-                scale += 0.1;
-            } else {
-                scale -= 0.1;
+        overlay.addEventListener('wheel', function(event) {
+            if (overlay.classList.contains('active')) 
+            {
+                event.preventDefault();
+                if (event.deltaY < 0) {
+                    scale += 0.1;
+                } else {
+                    scale -= 0.1;
+                }
             }
+            
         overlayImg.style.transform = 'scale(' + scale + ') translate3d(' + posX + 'px, ' + posY + 'px, 0)';
         });
 
