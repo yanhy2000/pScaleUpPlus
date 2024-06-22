@@ -3,10 +3,8 @@ if (!defined('__TYPECHO_ROOT_DIR__')) exit;
 /**
  * 图片放大插件，放大倍数请自行设置
  * 
- * @package pScaleUp 
- * @author 梁先生呀
- * @version 1.0.1
- * @link http://539go.com
+ * @package pScaleUp_plus
+ * @version 1.1.0_1
  */
 class pScaleUp_Plugin implements Typecho_Plugin_Interface
 {
@@ -19,8 +17,8 @@ class pScaleUp_Plugin implements Typecho_Plugin_Interface
      */
     public static function activate()
     {
-		Typecho_Plugin::factory('Widget_Archive')->footer = array('pScaleUp_Plugin', 'footer');
-	}
+        Typecho_Plugin::factory('Widget_Archive')->footer = array('pScaleUp_Plugin', 'footer');
+    }
     
     /**
      * 禁用插件方法,如果禁用失败,直接抛出异常
@@ -41,14 +39,13 @@ class pScaleUp_Plugin implements Typecho_Plugin_Interface
      */
     public static function config(Typecho_Widget_Helper_Form $form)
     {
-        /** 分类名称 */
-        $name = new Typecho_Widget_Helper_Form_Element_Text(
-			'size', NULL, '1.6', _t('点击图片后的放大倍数 (默认为1.6)'));
-        $form->addInput($name);
-		
-		$name = new Typecho_Widget_Helper_Form_Element_Text(
-			'sHover', NULL, '1', _t('鼠标放上去的变化倍数 (默认为1.0 建议1.005)'));
-        $form->addInput($name);
+        $size = new Typecho_Widget_Helper_Form_Element_Text(
+            'size', NULL, '1.6', _t('点击图片后的放大倍数 (默认为1.6)'));
+        $form->addInput($size);
+        
+        $sHover = new Typecho_Widget_Helper_Form_Element_Text(
+            'sHover', NULL, '1', _t('鼠标放上去的变化倍数 (默认为1.0 建议1.005)'));
+        $form->addInput($sHover);
     }
     
     /**
@@ -72,45 +69,77 @@ class pScaleUp_Plugin implements Typecho_Plugin_Interface
             . htmlspecialchars(Typecho_Widget::widget('Widget_Options')->plugin('pScaleUp')->word)
             . '</span>';
     }
-	public static function footer()
-	{
-		$code = 
+    
+    public static function footer()
+    {
+        $code = 
 <<<EOL
 <style>
-	img {
-		cursor: pointer;
-		transition: -webkit-transform 0.1s ease
-	}
-	img:hover{
-		transform: scale({SHOVER});
-		-ms-transform: scale({SHOVER});	/* IE 9 */
-		-webkit-transform: scale({SHOVER});	/* Safari 和 Chrome */
-		-o-transform: scale({SHOVER});	/* Opera */
-		-moz-transform: scale({SHOVER});	/* Firefox */
-	}
-	img:focus {
-		transform: scale({SIZE});
-		-ms-transform: scale({SIZE});	/* IE 9 */
-		-webkit-transform: scale({SIZE});	/* Safari 和 Chrome */
-		-o-transform: scale({SIZE});	/* Opera */
-		-moz-transform: scale({SIZE});	/* Firefox */
-	}
+    img {
+        cursor: pointer;
+        transition: transform 0.1s ease;
+    }
+    img:hover {
+        transform: scale({SHOVER});
+    }
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(10px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+    .overlay img {
+        border: 5px solid rgba(255, 255, 255, 0.7);
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        max-width: 90%;
+        max-height: 90%;
+        transform: scale(1);
+        transition: transform 0.3s ease;
+    }
+    .overlay.active {
+        opacity: 1;
+        pointer-events: all;
+    }
 </style>
 <script>
-	document.addEventListener('DOMContentLoaded', function(){
-		var imgs = document.querySelectorAll('img');
-		Array.prototype.forEach.call(imgs, function(el, i) {
-			if (el.tabIndex <= 0) el.tabIndex = 100;
-		});
-	});
+    document.addEventListener('DOMContentLoaded', function() {
+        var imgs = document.querySelectorAll('img');
+        var overlay = document.createElement('div');
+        overlay.className = 'overlay';
+        var overlayImg = document.createElement('img');
+        overlay.appendChild(overlayImg);
+        document.body.appendChild(overlay);
+
+        Array.prototype.forEach.call(imgs, function(el) {
+            el.addEventListener('click', function() {
+                overlayImg.src = el.src;
+                overlayImg.style.transform = 'scale(' + {SIZE} + ')';
+                overlay.classList.add('active');
+            });
+        });
+
+        overlay.addEventListener('click', function() {
+            overlay.classList.remove('active');
+        });
+    });
 </script>
 EOL;
         $size = Typecho_Widget::widget('Widget_Options')->plugin('pScaleUp')->size;
         $size = $size <= 0 ? 1.6 : $size;
-		$sHover = Typecho_Widget::widget('Widget_Options')->plugin('pScaleUp')->sHover;
+        $sHover = Typecho_Widget::widget('Widget_Options')->plugin('pScaleUp')->sHover;
         $sHover = $sHover <= 0 ? 1 : $sHover;
-		
-		$code = str_replace("{SIZE}", $size, $code);
-        echo str_replace("{SHOVER}", $sHover, $code);      
-	}
+        
+        $code = str_replace("{SIZE}", $size, $code);
+        echo str_replace("{SHOVER}", $sHover, $code);
+    }
 }
