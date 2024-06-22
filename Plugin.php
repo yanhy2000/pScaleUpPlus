@@ -6,7 +6,7 @@ if (!defined('__TYPECHO_ROOT_DIR__')) exit;
  * 
  * @package pScaleUp_plus
  * @author yanhy2000
- * @version 1.1.1
+ * @version 1.1.2
  * @link https://github.om/yanhy2000/pScaleUp_plus
  */
 class pScaleUp_Plugin implements Typecho_Plugin_Interface
@@ -148,27 +148,32 @@ class pScaleUp_Plugin implements Typecho_Plugin_Interface
         var imgs = document.querySelectorAll('img');
         var overlay = document.createElement('div');
         overlay.className = 'overlay';
-        
+
         var overlayImg = document.createElement('img');
         var caption = document.createElement('div');
         caption.className = 'caption';
-        
+
         var prevButton = document.createElement('button');
         prevButton.className = 'nav-button prev-button';
         prevButton.innerHTML = '❮';
-        
+
         var nextButton = document.createElement('button');
         nextButton.className = 'nav-button next-button';
         nextButton.innerHTML = '❯';
-        
+
         overlay.appendChild(overlayImg);
         overlay.appendChild(caption);
         overlay.appendChild(prevButton);
         overlay.appendChild(nextButton);
-        
+
         document.body.appendChild(overlay);
 
         var currentIndex = 0;
+        var scale = 1;
+        var startX, startY;
+        var isDragging = false;
+        var lastX, lastY;
+        var posX = 0, posY = 0;
 
         function showImage(index) {
             if (index < 0 || index >= imgs.length) return;
@@ -176,8 +181,15 @@ class pScaleUp_Plugin implements Typecho_Plugin_Interface
             var img = imgs[index];
             overlayImg.src = img.src;
             caption.innerHTML = img.title || '';
-            overlayImg.style.transform = 'scale(' + {SIZE} + ')';
             overlay.classList.add('active');
+            scale = 1;
+            posX = 0;
+            posY = 0;
+            overlayImg.style.transform = 'scale(1) translate3d(0, 0, 0)';
+        }
+
+        function closeOverlay() {
+            overlay.classList.remove('active');
         }
 
         Array.prototype.forEach.call(imgs, function(el, index) {
@@ -186,8 +198,10 @@ class pScaleUp_Plugin implements Typecho_Plugin_Interface
             });
         });
 
-        overlay.addEventListener('click', function() {
-            overlay.classList.remove('active');
+        overlay.addEventListener('click', function(event) {
+            if (event.target !== prevButton && event.target !== nextButton) {//event.target !== overlayImg &&
+                closeOverlay();
+            }
         });
 
         prevButton.addEventListener('click', function(event) {
@@ -207,11 +221,61 @@ class pScaleUp_Plugin implements Typecho_Plugin_Interface
             } else if (event.key === 'ArrowRight') {
                 showImage(currentIndex + 1);
             } else if (event.key === 'Escape') {
-                overlay.classList.remove('active');
+                closeOverlay();
             }
+        });
+
+        overlayImg.addEventListener('wheel', function(event) {
+            event.preventDefault();
+            if (event.deltaY < 0) {
+                scale += 0.1;
+            } else {
+                scale -= 0.1;
+            }
+        overlayImg.style.transform = 'scale(' + scale + ') translate3d(' + posX + 'px, ' + posY + 'px, 0)';
+        });
+
+        overlayImg.addEventListener('touchstart', function(event) {
+            if (event.touches.length === 2) {
+                startX = event.touches[0].pageX - event.touches[1].pageX;
+                startY = event.touches[0].pageY - event.touches[1].pageY;
+            } else if (event.touches.length === 1) {
+                isDragging = true;
+                lastX = event.touches[0].pageX;
+                lastY = event.touches[0].pageY;
+            }
+        });
+
+        overlayImg.addEventListener('touchmove', function(event) {
+            if (event.touches.length === 2) {
+                event.preventDefault();
+                var dx = event.touches[0].pageX - event.touches[1].pageX;
+                var dy = event.touches[0].pageY - event.touches[1].pageY;
+                var distance = Math.sqrt(dx * dx + dy * dy);
+                var startDistance = Math.sqrt(startX * startX + startY * startY);
+                scale *= distance / startDistance;
+                startX = dx;
+                startY = dy;
+            overlayImg.style.transform = 'scale(' + scale + ') translate3d(' + posX + 'px, ' + posY + 'px, 0)';
+            } else if (event.touches.length === 1 && isDragging) {
+                event.preventDefault();
+                var dx = event.touches[0].pageX - lastX;
+                var dy = event.touches[0].pageY - lastY;
+            posX += dx;
+            posY += dy;
+            requestAnimationFrame(function() {
+                overlayImg.style.transform = 'scale(' + scale + ') translate3d(' + posX + 'px, ' + posY + 'px, 0)';
+            });
+                lastX = event.touches[0].pageX;
+                lastY = event.touches[0].pageY;
+            }
+        });
+        overlayImg.addEventListener('touchend', function(event) {
+            isDragging = false;
         });
     });
 </script>
+
 
 EOL;
         $size = Typecho_Widget::widget('Widget_Options')->plugin('pScaleUp')->size;
