@@ -4,7 +4,9 @@ if (!defined('__TYPECHO_ROOT_DIR__')) exit;
  * 图片放大插件，放大倍数请自行设置
  * 
  * @package pScaleUp_plus
- * @version 1.1.0_1
+ * @author yanhy2000
+ * @version 1.1.0
+ * @link https://github.com/yanhy2000/pScaleUp_plus
  */
 class pScaleUp_Plugin implements Typecho_Plugin_Interface
 {
