@@ -7,7 +7,7 @@ if (!defined('__TYPECHO_ROOT_DIR__')) exit;
  * 
  * @package pScaleUp_plus
  * @author yanhy2000
- * @version 2.0
+ * @version 2.0.1
  * @link https://github.om/yanhy2000/pScaleUp_plus
  */
 class pScaleUpPlus_Plugin implements Typecho_Plugin_Interface
@@ -44,11 +44,11 @@ class pScaleUpPlus_Plugin implements Typecho_Plugin_Interface
     public static function config(Typecho_Widget_Helper_Form $form)
     {
         $size = new Typecho_Widget_Helper_Form_Element_Text(
-            'size', NULL, '1.6', _t('点击图片后的放大倍数 (默认为1.6)'));
+            'size', NULL, '1.6', _t('点击图片后的初始放大倍数 (默认为1.6)'));
         $form->addInput($size);
         
         $sHover = new Typecho_Widget_Helper_Form_Element_Text(
-            'sHover', NULL, '1', _t('鼠标放上去的变化倍数 (默认为1.0 建议1.005)'));
+            'sHover', NULL, '1.05', _t('鼠标放上去的变化倍数 (默认为1.05 建议1.05),1为禁用'));
         $form->addInput($sHover);
     }
     
@@ -69,7 +69,7 @@ class pScaleUpPlus_Plugin implements Typecho_Plugin_Interface
         $size = Typecho_Widget::widget('Widget_Options')->plugin('pScaleUpPlus')->size;
         $size = $size <= 0 ? 1.6 : $size;
         $sHover = Typecho_Widget::widget('Widget_Options')->plugin('pScaleUpPlus')->sHover;
-        $sHover = $sHover <= 0 ? 1 : $sHover;
+        $sHover = $sHover <= 0 ? 1.05 : $sHover;
         
         require_once 'footer_code.php';
         echo str_replace(['{SIZE}', '{SHOVER}'], [$size, $sHover], $code);
