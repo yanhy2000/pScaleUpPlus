@@ -6,7 +6,7 @@ if (!defined('__TYPECHO_ROOT_DIR__')) exit;
  * 
  * @package pScaleUp_plus
  * @author yanhy2000
- * @version 1.1.2
+ * @version 1.1.3
  * @link https://github.om/yanhy2000/pScaleUp_plus
  */
 class pScaleUp_Plugin implements Typecho_Plugin_Interface
