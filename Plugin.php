@@ -85,6 +85,9 @@ class pScaleUp_Plugin implements Typecho_Plugin_Interface
     img:hover {
         transform: scale({SHOVER});
     }
+    img.no-scale {
+        cursor: default;
+    }
     .overlay {
         position: fixed;
         top: 0;
@@ -142,31 +145,42 @@ class pScaleUp_Plugin implements Typecho_Plugin_Interface
     .overlay .next-button {
         right: 20px;
     }
+
 </style>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         var imgs = document.querySelectorAll('img');
         var overlay = document.createElement('div');
         overlay.className = 'overlay';
-
+        overlay.style.display = 'none';
+    
         var overlayImg = document.createElement('img');
         var caption = document.createElement('div');
         caption.className = 'caption';
-
+    
         var prevButton = document.createElement('button');
         prevButton.className = 'nav-button prev-button';
         prevButton.innerHTML = '❮';
-
+    
         var nextButton = document.createElement('button');
         nextButton.className = 'nav-button next-button';
         nextButton.innerHTML = '❯';
-
+    
         overlay.appendChild(overlayImg);
         overlay.appendChild(caption);
         overlay.appendChild(prevButton);
         overlay.appendChild(nextButton);
-
+    
         document.body.appendChild(overlay);
+    
+        Array.prototype.forEach.call(imgs, function(el, index) {
+            // 检查图片是否有 no-scale 类名
+            if (!el.classList.contains('no-scale')) {
+                el.addEventListener('click', function() {
+                    showImage(index);
+                });
+            }
+        });
 
         var currentIndex = 0;
         var scale = 1;
@@ -177,10 +191,15 @@ class pScaleUp_Plugin implements Typecho_Plugin_Interface
 
         function showImage(index) {
             if (index < 0 || index >= imgs.length) return;
+    
+            // 检查当前图片是否有 no-scale 类名
+            if (imgs[index].classList.contains('no-scale')) return;
+    
             currentIndex = index;
             var img = imgs[index];
             overlayImg.src = img.src;
             caption.innerHTML = img.title || '';
+            overlay.style.display = 'flex';
             overlay.classList.add('active');
             scale = 1;
             posX = 0;
@@ -190,13 +209,8 @@ class pScaleUp_Plugin implements Typecho_Plugin_Interface
 
         function closeOverlay() {
             overlay.classList.remove('active');
+            overlay.style.display = 'none';
         }
-
-        Array.prototype.forEach.call(imgs, function(el, index) {
-            el.addEventListener('click', function() {
-                showImage(index);
-            });
-        });
 
         overlay.addEventListener('click', function(event) {
             if (event.target !== prevButton && event.target !== nextButton) {
@@ -208,12 +222,12 @@ class pScaleUp_Plugin implements Typecho_Plugin_Interface
             event.stopPropagation();
             showImage(currentIndex - 1);
         });
-
+    
         nextButton.addEventListener('click', function(event) {
             event.stopPropagation();
             showImage(currentIndex + 1);
         });
-
+    
         document.addEventListener('keydown', function(event) {
             if (!overlay.classList.contains('active')) return;
             if (event.key === 'ArrowLeft') {
