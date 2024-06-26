@@ -8,9 +8,6 @@ $code = <<<EOL
     .markdown-body img:hover {
         transform: scale({SHOVER});
     }
-    .markdown-body img.no-scale {
-        cursor: default;
-    }
     .overlay {
         position: fixed;
         top: 0;
@@ -28,12 +25,10 @@ $code = <<<EOL
         pointer-events: none;
     }
     .overlay img {
-        border: 5px solid rgba(255, 255, 255, 0.7);
-        box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
         max-width: 90%;
         max-height: 90%;
         transform: scale(1);
-        transition: transform 0.3s ease;
     }
     .overlay.active {
         opacity: 1;
@@ -96,11 +91,9 @@ $code = <<<EOL
         document.body.appendChild(overlay);
     
         Array.prototype.forEach.call(imgs, function(el, index) {
-            if (!el.classList.contains('no-scale')) {
-                el.addEventListener('click', function() {
-                    showImage(index);
-                });
-            }
+            el.addEventListener('click', function() {
+                showImage(index);
+            });
         });
 
         var currentIndex = 0;
@@ -112,8 +105,6 @@ $code = <<<EOL
 
         function showImage(index) {
             if (index < 0 || index >= imgs.length) return;
-            if (imgs[index].classList.contains('no-scale')) return;
-    
             currentIndex = index;
             var img = imgs[index];
             overlayImg.src = img.src;
